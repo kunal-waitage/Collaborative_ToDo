@@ -7,7 +7,7 @@ addBtnEl.addEventListener("click", handleAddTodo);
 
 let todos = [];
 
-// ================= RENDER =================
+// ================= Render List =================
 
 function renderTodos() {
   rootEl.innerHTML = "";
@@ -65,7 +65,7 @@ function renderTodo(index, todo) {
   rootEl.appendChild(listEl);
 }
 
-// ================= ADD =================
+// ================= Add to List =================
 
 function handleAddTodo() {
   const value = userInEl.value.trim();
