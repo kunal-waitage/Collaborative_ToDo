@@ -19,6 +19,7 @@ import AlertModal from "@/components/AlertModal";
 import EditModal from "@/components/EditModal";
 import ConfirmModal from "@/components/ConfirmModal";
 import DeleteRoomModal from "@/components/DeleteRoomModal";
+import ActivityLog from "@/components/ActivityLog";
 
 export default function RoomPage() {
   const { roomId } = useParams();
@@ -68,6 +69,16 @@ export default function RoomPage() {
     return () => unsubscribe();
   }, [roomId]);
 
+  // ── LOG ACTIVITIES ──
+
+  async function logActivity(message) {
+    const activityRef = push(ref(db, `activity/${roomId}`));
+    await set(activityRef, {
+      message,
+      timestamp: Date.now(),
+    });
+  }
+
   // ── TASKS ──
   async function handleAdd() {
     const value = input.trim();
@@ -84,6 +95,7 @@ export default function RoomPage() {
       flaggedBy: null,
       assignedTo: null,
     });
+    await logActivity(`@${username} added "${value}"`);
     setInput("");
   }
 
@@ -92,6 +104,7 @@ export default function RoomPage() {
   }
 
   async function handleDelete(key) {
+    await logActivity(`@${username} deleted "${todos[key].title}"`);
     await remove(ref(db, `tasks/${roomId}/${key}`));
   }
 
@@ -103,12 +116,22 @@ export default function RoomPage() {
     }
     const newFlag = todo.flaggedBy === currentUID ? null : currentUID;
     await update(ref(db, `tasks/${roomId}/${key}`), { flaggedBy: newFlag });
+    if (newFlag) {
+      await logActivity(`@${username} claimed "${todo.title}"`);
+    } else {
+      await logActivity(`@${username} unclaimed "${todo.title}"`);
+    }
   }
 
   async function handleAssign(key, uid) {
     await update(ref(db, `tasks/${roomId}/${key}`), {
       assignedTo: uid === "none" ? null : uid,
     });
+    if (uid !== "none") {
+      await logActivity(
+        `@${username} assigned "${todos[key].title}" to @${members[uid]}`,
+      );
+    }
   }
 
   async function handleEditSave(key, newTitle) {
@@ -164,6 +187,7 @@ export default function RoomPage() {
   async function handleDeleteRoom() {
     await remove(ref(db, `rooms/${roomId}`));
     await remove(ref(db, `tasks/${roomId}`));
+    await remove(ref(db, `activity/${roomId}`));
     window.location.href = "/";
   }
 
@@ -402,6 +426,8 @@ export default function RoomPage() {
           ))}
         </ul>
       </div>
+
+      <ActivityLog roomId={roomId} />
 
       {/* Modals */}
       <AlertModal message={alertMsg} onClose={() => setAlertMsg("")} />

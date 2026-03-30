@@ -499,3 +499,24 @@ nav h3 {
   padding: 2px 8px;
   border-radius: 20px;
 }
+/* ── NOTIFICATION BADGE ── */
+.menubtn {
+  position: relative;
+}
+.notif-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 8px;
+  height: 8px;
+  background: #22d3ee;
+  border-radius: 50%;
+  border: 2px solid #0a1628;
+}
+
+/* ── ACTIVITY LOG ── */
+.activity-divider {
+  border: none;
+  border-top: 1px solid #bfdbfe;
+  margin: 8px 0;
+}
