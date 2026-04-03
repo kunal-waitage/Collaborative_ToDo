@@ -94,6 +94,7 @@ export default function RoomPage() {
       completed: false,
       flaggedBy: null,
       assignedTo: null,
+      createdBy: currentUID,
     });
     await logActivity(`@${username} added "${value}"`);
     setInput("");
@@ -191,6 +192,16 @@ export default function RoomPage() {
     window.location.href = "/";
   }
 
+  // ── RENAME ROOM ──
+
+  async function handleRenameRoom() {
+    const newName = prompt("Enter new room name:");
+    if (!newName || !newName.trim()) return;
+    if (newName.trim() === room.name) return;
+    await update(ref(db, `rooms/${roomId}`), { name: newName.trim() });
+    await logActivity(`@${username} renamed the room to "${newName.trim()}"`);
+  }
+
   // ── LEAVE ROOM ──
 
   function promptLeaveRoom() {
@@ -239,6 +250,11 @@ export default function RoomPage() {
             {isHost && (
               <button onClick={handleInvite} className="addBtn">
                 + Invite
+              </button>
+            )}
+            {isHost && (
+              <button onClick={handleRenameRoom} className="alert-cancel">
+                Rename
               </button>
             )}
             {!isHost && (
@@ -410,18 +426,22 @@ export default function RoomPage() {
                   }}
                 ></i>
               </button>
-              <button
-                onClick={() => {
-                  setEditKey(key);
-                  setEditTitle(todo.title);
-                }}
-                className="editbtn"
-              >
-                <i className="fa-solid fa-pen edit-icon"></i>
-              </button>
-              <button onClick={() => handleDelete(key)} className="dltbtn">
-                <i className="fa-solid fa-trash trash-icon"></i>
-              </button>
+              {(todo.createdBy === currentUID || isHost) && (
+                <button
+                  onClick={() => {
+                    setEditKey(key);
+                    setEditTitle(todo.title);
+                  }}
+                  className="editbtn"
+                >
+                  <i className="fa-solid fa-pen edit-icon"></i>
+                </button>
+              )}
+              {(todo.createdBy === currentUID || isHost) && (
+                <button onClick={() => handleDelete(key)} className="dltbtn">
+                  <i className="fa-solid fa-trash trash-icon"></i>
+                </button>
+              )}
             </li>
           ))}
         </ul>
